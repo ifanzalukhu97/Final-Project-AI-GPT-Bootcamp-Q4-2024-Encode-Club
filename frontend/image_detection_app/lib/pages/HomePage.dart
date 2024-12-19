@@ -18,7 +18,6 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _dateController = TextEditingController();
   Map<String, dynamic> _apiResponse = {}; // Save Response
 
-  // Pick images function
   Future<void> _pickImages() async {
     if (_selectedImages.length >= 6) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -46,13 +45,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   void _removeImage(int index) {
     setState(() {
       _selectedImages.removeAt(index);
     });
   }
-
 
   Future<void> _uploadData() async {
     if (_selectedImages.isEmpty) {
@@ -62,17 +59,15 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    // URL API
     String getApiUrl() {
       if (kIsWeb) {
-        return "http://127.0.0.1:51000/post"; // URL for Web
+        return "http://127.0.0.1:51000/post";
       } else {
-        return "http://10.0.2.2:51000/post"; // URL for Emulator Android
+        return "http://10.0.2.2:51000/post";
       }
     }
 
     final String apiUrl = getApiUrl();
-
 
     List<Map<String, dynamic>> imageList = _selectedImages.map((img) {
       String base64Image = kIsWeb
@@ -105,11 +100,11 @@ class _HomePageState extends State<HomePage> {
           _apiResponse = jsonDecode(response.body);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('The data has been uploaded successfully!')),
+          const SnackBar(content: Text('Data berhasil diunggah!')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload data! ${response.statusCode}')),
+          SnackBar(content: Text('Gagal mengunggah data! ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -119,12 +114,40 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Function untuk validasi target
+  String _validateTargets(List<dynamic> data) {
+    bool hasSelfie = false;
+    bool hasDistributorProduct = false;
+
+    for (var item in data) {
+      var matches = item['matches'] ?? [];
+      for (var match in matches) {
+        String text = match['text'] ?? '';
+        double clipScore = match['scores']?['clip_score']?['value'] ?? 0.0;
+
+        if (text.contains("customer’s location or store") && clipScore > 0.5) {
+          hasSelfie = true;
+        }
+        if (text.contains("distributor’s product display") && clipScore > 0.5) {
+          hasDistributorProduct = true;
+        }
+      }
+    }
+
+    if (hasSelfie && hasDistributorProduct) {
+      return "Target Terpenuhi";
+    }
+    return "Target Tidak Terpenuhi";
+  }
+
   Widget _buildApiResponse() {
     if (_apiResponse.isEmpty) {
       return const Text('No validation results available.');
     }
 
     List<dynamic> data = _apiResponse['data'] ?? [];
+    String validationResult = _validateTargets(data);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -133,21 +156,26 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
+        Text(
+          'Status: $validationResult',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: validationResult == "Target Terpenuhi" ? Colors.green : Colors.red,
+          ),
+        ),
+        const SizedBox(height: 10),
         ...data.asMap().entries.map((entry) {
           int index = entry.key;
           var item = entry.value;
           final matches = item['matches'] ?? [];
           return ExpansionTile(
-            initiallyExpanded: true,
             title: Text('Image ${index + 1} Results'),
             children: matches.map<Widget>((match) {
-              final clipScore = match['scores']['clip_score']['value'];
-              final clipScoreCosine = match['scores']['clip_score_cosine']['value'];
+              final clipScore = match['scores']?['clip_score']?['value'] ?? 0.0;
               return ListTile(
                 title: Text(match['text']),
-                subtitle: Text(
-                  'clip_score: $clipScore\nclip_score_cosine: $clipScoreCosine',
-                ),
+                subtitle: Text('clip_score: $clipScore'),
               );
             }).toList(),
           );
@@ -172,33 +200,6 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: _dateController,
-              decoration: const InputDecoration(
-                labelText: 'Date',
-                border: OutlineInputBorder(),
-              ),
-              readOnly: true,
-              onTap: () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (pickedDate != null) {
-                  setState(() {
-                    _dateController.text =
-                    "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Customer Images (Max 5 Photos):',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
             _buildImagePreview(),
             const SizedBox(height: 10),
             ElevatedButton.icon(
@@ -221,7 +222,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Preview untuk menampilkan gambar
   Widget _buildImagePreview() {
     return _selectedImages.isEmpty
         ? const Text('No Images Selected')

@@ -16,7 +16,7 @@ class _HomePageState extends State<HomePage> {
   final ImagePicker _picker = ImagePicker();
   List<dynamic> _selectedImages = [];
   final TextEditingController _dateController = TextEditingController();
-  Map<String, dynamic> _apiResponse = {}; // Save Response
+  Map<String, dynamic> _apiResponse = {}; // Simpan hasil API
 
   Future<void> _pickImages() async {
     if (_selectedImages.length >= 6) {
@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _uploadData() async {
     if (_selectedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon pilih setidaknya satu gambar!')),
+        const SnackBar(content: Text('Select the image')),
       );
       return;
     }
@@ -100,11 +100,11 @@ class _HomePageState extends State<HomePage> {
           _apiResponse = jsonDecode(response.body);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data berhasil diunggah!')),
+          const SnackBar(content: Text('Data uploaded')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengunggah data! ${response.statusCode}')),
+          SnackBar(content: Text('Data failed to uploaded! ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -113,32 +113,89 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
-
-  // Function untuk validasi target
   String _validateTargets(List<dynamic> data) {
     bool hasSelfie = false;
     bool hasDistributorProduct = false;
 
+    print('Isi data: $data');
     for (var item in data) {
       var matches = item['matches'] ?? [];
       for (var match in matches) {
         String text = match['text'] ?? '';
         double clipScore = match['scores']?['clip_score']?['value'] ?? 0.0;
 
-        if (text.contains("customer’s location or store") && clipScore > 0.5) {
+        text = text.replaceAll('’', "'"); //
+        print('Item: $item');
+        print('Matches: $matches');
+
+        if (text.contains("A photo or selfie in front of the customer's location or store") &&
+            clipScore > 0.5) {
           hasSelfie = true;
         }
-        if (text.contains("distributor’s product display") && clipScore > 0.5) {
+
+        if (text.contains("A photo of the distributor's product display as well as competitors' products at the customer's location") &&
+            clipScore > 0.5) {
           hasDistributorProduct = true;
         }
       }
     }
 
     if (hasSelfie && hasDistributorProduct) {
-      return "Target Terpenuhi";
+      return "Target Achieved";
     }
-    return "Target Tidak Terpenuhi";
+    return "Target Not Achieved";
   }
+
+
+  // Widget _buildApiResponse() {
+  //   if (_apiResponse.isEmpty) {
+  //     return const Text('No validation results available.');
+  //   }
+  //
+  //   List<dynamic> data = _apiResponse['data'] ?? [];
+  //   String validationResult = _validateTargets(data);
+  //
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       const Text(
+  //         'Validation Results:',
+  //         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //       ),
+  //       const SizedBox(height: 10),
+  //       Text(
+  //         'Status: $validationResult',
+  //         style: TextStyle(
+  //           fontSize: 16,
+  //           fontWeight: FontWeight.bold,
+  //           color: validationResult == "Target Achieved" ? Colors.green : Colors.red,
+  //         ),
+  //       ),
+  //       const SizedBox(height: 10),
+  //       ...data.asMap().entries.map((entry) {
+  //         int index = entry.key;
+  //         var item = entry.value;
+  //         final matches = item['matches'] ?? [];
+  //
+  //         // Cari clip_score tertinggi
+  //         matches.sort((a, b) =>
+  //             ((b['scores']?['clip_score']?['value'] ?? 0.0) as double)
+  //                 .compareTo(a['scores']?['clip_score']?['value'] ?? 0.0));
+  //
+  //         return ExpansionTile(
+  //           title: Text('Image ${index + 1} Results'),
+  //           children: matches.map<Widget>((match) {
+  //             final clipScore = match['scores']?['clip_score']?['value'] ?? 0.0;
+  //             return ListTile(
+  //               title: Text(match['text']),
+  //               subtitle: Text('clip_score: $clipScore'),
+  //             );
+  //           }).toList(),
+  //         );
+  //       }),
+  //     ],
+  //   );
+  // }
 
   Widget _buildApiResponse() {
     if (_apiResponse.isEmpty) {
@@ -147,6 +204,7 @@ class _HomePageState extends State<HomePage> {
 
     List<dynamic> data = _apiResponse['data'] ?? [];
     String validationResult = _validateTargets(data);
+    print("$_validateTargets");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,15 +213,7 @@ class _HomePageState extends State<HomePage> {
           'Validation Results:',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 10),
-        Text(
-          'Status: $validationResult',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: validationResult == "Target Terpenuhi" ? Colors.green : Colors.red,
-          ),
-        ),
+
         const SizedBox(height: 10),
         ...data.asMap().entries.map((entry) {
           int index = entry.key;
@@ -173,16 +223,35 @@ class _HomePageState extends State<HomePage> {
             title: Text('Image ${index + 1} Results'),
             children: matches.map<Widget>((match) {
               final clipScore = match['scores']?['clip_score']?['value'] ?? 0.0;
+              // final clipScoreCosine= match['scores']?['clip_score']?['value'] ?? 0.0;
               return ListTile(
                 title: Text(match['text']),
                 subtitle: Text('clip_score: $clipScore'),
+                // trailing: Text('clip_score_cosine: $clipScoreCosine')
+
               );
             }).toList(),
           );
         }),
+        const SizedBox(height: 10),
+        Text(
+          'Status: $validationResult',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: validationResult == "Target Achieved" ? Colors.green : Colors.red,
+          ),
+        ),
       ],
     );
   }
+
+  @override
+  void initState() {
+    super.initState();
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +284,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildApiResponse(), // Menampilkan hasil validasi
+            _buildApiResponse(),
           ],
         ),
       ),

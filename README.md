@@ -73,14 +73,11 @@ When criteria are not met, the system will return the result as shown below (Tar
 
 
 ## Demo Video
+visit this link: [Demo Video](https://drive.google.com/file/d/1gup7reR72-Bz-z4w2l4dWWElWgOCnlVv/view)
 
-<video controls>
-  <source src="https://drive.google.com/file/d/1gup7reR72-Bz-z4w2l4dWWElWgOCnlVv/view" type="video/webm">
-  Your browser does not support the video tag.
-</video>
 
-or visit this link: [Demo Video](https://drive.google.com/file/d/1gup7reR72-Bz-z4w2l4dWWElWgOCnlVv/view)
-
+## Slides Presentation
+visit this link: [Slides Presentation](https://docs.google.com/presentation/d/1wNJBkc2iseYiIgycaMAD8-L4vL6PAFFvp7FGSFU605U/edit?usp=sharing)
 
 ## Contributors
 - [Ifanzalukhu97](https://github.com/ifanzalukhu97) (ID: oBklq0)

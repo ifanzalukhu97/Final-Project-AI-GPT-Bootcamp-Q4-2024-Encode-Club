@@ -128,12 +128,12 @@ class _HomePageState extends State<HomePage> {
         print('Item: $item');
         print('Matches: $matches');
 
-        if (text.contains("A photo or selfie in front of the customer's location or store") &&
+        if (text.contains("selfie") &&
             clipScore > 0.5) {
           hasSelfie = true;
         }
 
-        if (text.contains("A photo of the distributor's product display as well as competitors' products at the customer's location") &&
+        if (text.contains("product display") &&
             clipScore > 0.5) {
           hasDistributorProduct = true;
         }
@@ -258,17 +258,20 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AI IMAGE DETECTION'),
+        backgroundColor: Colors.blueAccent,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Center(
+            child: const Text(
               'Upload Visit',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.purple ),
             ),
-            const SizedBox(height: 10),
+            ),
+            const SizedBox(height: 20),
             _buildImagePreview(),
             const SizedBox(height: 10),
             ElevatedButton.icon(

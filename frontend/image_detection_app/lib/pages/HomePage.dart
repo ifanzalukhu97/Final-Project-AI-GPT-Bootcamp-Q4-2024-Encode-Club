@@ -16,12 +16,12 @@ class _HomePageState extends State<HomePage> {
   final ImagePicker _picker = ImagePicker();
   List<dynamic> _selectedImages = [];
   final TextEditingController _dateController = TextEditingController();
-  Map<String, dynamic> _apiResponse = {}; // Simpan hasil API
+  Map<String, dynamic> _apiResponse = {};
 
   Future<void> _pickImages() async {
     if (_selectedImages.length >= 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maksimal 5 foto!')),
+        const SnackBar(content: Text('Max 5 photos!')),
       );
       return;
     }
@@ -77,8 +77,8 @@ class _HomePageState extends State<HomePage> {
       return {
         "uri": "data:image/png;base64,$base64Image",
         "matches": [
-          {"text": "A photo or selfie in front of the customer’s location or store"},
-          {"text": "A photo of the distributor’s product display as well as competitors’ products at the customer’s location"},
+          {"text": "A photo or selfie in front of the customers location or store"},
+          {"text": "A photo of the distributor product display as well as competitor products at the customers location"},
         ],
       };
     }).toList();
